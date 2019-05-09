@@ -1,5 +1,8 @@
 revision history for Data-SSHPubkey. see also the git repo
 
+0.04    2019-05-09
+        add $max_lines limit to avoid parsing too many lines
+
 0.03    2019-03-04
         support passed filehandles (pairs well with ssh-keyscan). more
         docs, more tests

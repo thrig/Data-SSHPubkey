@@ -12,13 +12,18 @@ use warnings;
 
 use Carp qw(croak);
 
+our ( $max_lines, %ssh_pubkey_types );
+
 require Exporter;
 our @ISA       = qw(Exporter);
 our @EXPORT_OK = qw(&pubkeys %ssh_pubkey_types);
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
-our %ssh_pubkey_types;
+# a 4096-bit RSA key is 16 lines in RFC4716, though this may need to be
+# set higher if you allow long comments, or
+$max_lines = 100;
+
 @ssh_pubkey_types{qw(ecdsa ed25519 rsa PEM PKCS8 RFC4716)} = ();
 
 sub pubkeys {
@@ -33,6 +38,7 @@ sub pubkeys {
     }
     my @keys;
     while ( my $line = readline $fh ) {
+        die "too many input lines" if $. > $max_lines;
         if ( $line =~ m{^(-----BEGIN RSA PUBLIC KEY-----)} ) {
             my $key = $1;
             my ( $ok, $data ) = _until_end( $fh, '-----END RSA PUBLIC KEY-----' );
@@ -71,6 +77,7 @@ sub _until_end {
     my $ok;
     my $ret = '';
     while ( my $line = readline $fh ) {
+        die "too many input lines" if $. > $max_lines;
         if ( $line =~ m/^($fin)/ ) {
             $ret .= $1;
             $ok = 1;
@@ -88,7 +95,7 @@ sub _until_end {
         # RFC 4716 ignore "key file header" fields as this code pretends
         # that it cannot recognize any
         if ( $line =~ m/:/ ) {
-            if ( $line =~ m/\\$/ ) {
+            if ( $line =~ m/\\$/ ) {    # backslash continues a line
                 do {
                     $line = readline $fh;
                     return undef, "continued to EOF" if eof $fh;
@@ -185,7 +192,11 @@ cause problems if C<ssh-keygen(1)> or equivalent on some platform
 demands a specific newline sequence that is not C<$/>.
 
 The types C<PEM>, C<PKCS8>, and C<RFC4716> will need conversion for use
-with OpenSSH; see the C<-i -m ...> options to L<ssh-keygen(1)>.
+with OpenSSH; see the C<-i -m ... -f ...> options to L<ssh-keygen(1)>.
+Or these types could be excluded via something like:
+
+  my $pubkeys = grep { $_->[0] =~ m/^(ecdsa|ed25519|rsa)$/ }
+    Data::SSHPubkey::pubkeys( ... );
 
 =head1 SUBROUTINE
 
@@ -206,7 +217,12 @@ sublists.
 
 =back
 
-=head1 VARIABLE
+=head1 VARIABLES
+
+C<$Data::SSHPubkey::max_lines> specifies the maximum number of input
+lines this module will process before throwing an exception, 100 by
+default. An attacker still might supply too much data with very long
+lines; webserver or other configuration to limit that may be necessary.
 
 The C<%Data::SSHPubkey::ssh_pubkey_types> hash contains as its keys the
 SSH public key types supported by this module.
