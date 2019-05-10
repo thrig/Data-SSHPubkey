@@ -45,6 +45,7 @@ ok( $ret->[1][1] =~ m{^---- BEGIN SSH2 PUBLIC KEY ----${/}AAAAB3NzaC1k} );
 dies_ok { pubkeys( \"---- BEGIN SSH2 PUBLIC KEY ----\n" ) };
 dies_ok { pubkeys( \"---- BEGIN SSH2 PUBLIC KEY ----\nx: \\\nbar \\" ) };
 
+# filename parse
 dies_ok { pubkeys( File::Spec->catfile(qw{t toolong.pub}) ) };
 
 $Data::SSHPubkey::max_lines = 640;
