@@ -19,7 +19,7 @@ require Exporter;
 our @ISA       = qw(Exporter);
 our @EXPORT_OK = qw(&convert_pubkeys &pubkeys %ssh_pubkey_types);
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 # rsa or ecdsa or ed25519 with the upper case forms presumably some
 # other encoding of one of these, so set very low by default
@@ -48,7 +48,8 @@ sub convert_pubkeys {
     for my $ref (@$list) {
         if ( $ref->[0] =~ m/^(?:PEM|PKCS8|RFC4716)$/ ) {
             # TODO perl (or CPAN module) conversion of these so don't
-            # need to call out to ssh-keygen
+            # need to call out to this ssh-keygen which is not portable
+            # to olden versions of ssh-keygen
             my $tmp = File::Temp->new;
             print $tmp $ref->[1];
             my $tfile = $tmp->filename;
@@ -56,6 +57,7 @@ sub convert_pubkeys {
               or die "could not exec ssh-keygen: $!";
             binmode $fh;
             push @pubkeys, do { local $/; readline $fh };
+            close $fh or die "ssh-keygen failed with exit status $?";
         } elsif ( $ref->[0] =~ m/^(?:ecdsa|ed25519|rsa)$/ ) {
             push @pubkeys, $ref->[1];
         } else {
@@ -300,8 +302,7 @@ L<https://github.com/thrig/Data-SSHPubkey>
 
 =head2 Known Issues
 
-Probably not enough guards or checks against hostile input (too many
-lines of input, for one).
+Probably not enough guards or checks against hostile input.
 
 Support for the C<PEM> and especially C<PKCS8> formats is a bit sloppy,
 and the base64 matching is done by a regex that may accept data that is
@@ -318,6 +319,9 @@ L<File::Slurper> or a traditional C<binmode $fh> should avoid this case
 as the key data looked for is only a subset of ASCII (header values or
 comments that are ignored by this module could be UTF-8 or possibly
 anything else).
+
+B<convert_pubkeys> calls out to (modern versions of) L<ssh-keygen(1)>;
+ideally this might instead be done via suitable CPAN modules.
 
 =head1 SEE ALSO
 

@@ -67,10 +67,19 @@ is( scalar @pubkeys, 3 );
 my $conv = 2;
 my $skg  = which('ssh-keygen');
 if ( defined $skg and length $skg ) {
-    my $rsakeys =
-      Data::SSHPubkey::convert_pubkeys( [ grep { $_->[0] =~ m/^[PR]/ } @$ret ] );
-    is( scalar @$rsakeys, 3 );
-    is( scalar( grep { $_ =~ m/^ssh-rsa / } @$rsakeys ), 3 );
+    eval {
+        my $rsakeys =
+          Data::SSHPubkey::convert_pubkeys( [ grep { $_->[0] =~ m/^[PR]/ } @$ret ] );
+        is( scalar @$rsakeys, 3 );
+        is( scalar( grep { $_ =~ m/^ssh-rsa / } @$rsakeys ), 3 );
+    };
+    if ($@) {
+        # olden versions of ssh-keygen(1) do not support -m flag (or
+        # something else is awry, such as selinux backstabbing you as
+        # per usual, or ...)
+        diag("ssh-keygen error? convert_pubkeys may be unusable on this platform: $@");
+        $conv = 0;
+    }
 } else {
     diag("could not find ssh-keygen, skipping convert test");
     $conv = 0;
