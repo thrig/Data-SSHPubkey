@@ -1,5 +1,8 @@
 revision history for Data-SSHPubkey. see also the git repo
 
+0.07    2019-08-09
+        mention web_irulan and change bug reporting to only github
+
 0.06    2019-05-13
         test for and ignore (with a warning) test errors from
         olden versions of ssh-keygen(1) that do not support the -m

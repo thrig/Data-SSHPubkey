@@ -19,7 +19,7 @@ require Exporter;
 our @ISA       = qw(Exporter);
 our @EXPORT_OK = qw(&convert_pubkeys &pubkeys %ssh_pubkey_types);
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 # rsa or ecdsa or ed25519 with the upper case forms presumably some
 # other encoding of one of these, so set very low by default
@@ -290,12 +290,6 @@ SSH public key types supported by this module.
 
 =head1 BUGS
 
-Please report any bugs or feature requests to C<bug-data-sshpubkey at
-rt.cpan.org>, or through the web interface at
-L<https://rt.cpan.org/NoAuth/ReportBug.html?Queue=Data-SSHPubkey>. I
-will be notified, and then you'll automatically be notified of progress
-on your bug as I make changes.
-
 Patches might best be applied towards:
 
 L<https://github.com/thrig/Data-SSHPubkey>
@@ -324,6 +318,8 @@ B<convert_pubkeys> calls out to (modern versions of) L<ssh-keygen(1)>;
 ideally this might instead be done via suitable CPAN modules.
 
 =head1 SEE ALSO
+
+https://github.com/thrig/web_irulan
 
 L<ssh-keygen(1)>, L<ssh-keyscan(1)>
 
